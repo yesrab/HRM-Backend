@@ -14,7 +14,7 @@ const app = express();
 app.use(
   statusMonitor({
     path: "/api/status",
-  })
+  }),
 );
 app.get("/", function (req, res) {
   res.send("Hello World");
@@ -30,7 +30,10 @@ const startServer = async () => {
     await connect(DB_URI);
     app.listen(PORT, () => {
       console.log(`Server Started at port ${PORT}`);
+      console.log("");
       console.log("\x1b[36m%s\x1b[0m", `http://localhost:${PORT}/`);
+      console.log("^ click here");
+      console.log("");
     });
   } catch (e) {
     console.log(e);
