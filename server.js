@@ -10,6 +10,12 @@ const PORT = process.env.PORT || 3000;
 const DB_URI = process.env.DB || "";
 //env variables
 
+//express body json parsing middleware
+app.use(express.json());
+
+//express url parsing middleware
+app.use(express.urlencoded({ extended: false }));
+
 const app = express();
 app.use(
   statusMonitor({
@@ -19,6 +25,11 @@ app.use(
 app.get("/", function (req, res) {
   res.send("Hello World");
 });
+
+//teachers Route
+const teachersRoutes = require("./routes/teachers");
+app.use("/api/v1/teachers", teachersRoutes);
+//teachers Route
 
 //error handler middleware
 const globalErrorHandler = require("./middleware/globalErrorHandler");

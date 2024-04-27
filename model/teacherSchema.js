@@ -20,17 +20,18 @@ const teacherSchema = new mongoose.Schema(
           trim: true,
         },
       },
+      required: [true, "Please enter Teacher First and Last Name"],
     },
     fullName: {
       type: String,
-      required: [true, "Please enter Teacher Last Name"],
+      required: [true, "Please enter Teacher Full Name"],
       trim: true,
     },
     gender: {
       type: String,
       required: [true, "Please select a gender"],
       enum: {
-        values: ["Male", "Female", "OTHERS"],
+        values: ["Male", "Female", "Other"],
         message: "{value} is not an valid Gender option",
       },
     },
@@ -79,6 +80,12 @@ const teacherSchema = new mongoose.Schema(
           type: String,
           required: [true, "Please enter bank branch"],
         },
+        PAN: {
+          type: String,
+          required: [true, "Please enter PAN number"],
+          maxLength: 10,
+          minLength: 10,
+        },
       },
       required: [true, "Please enter KYC details"],
     },
@@ -95,6 +102,7 @@ const teacherSchema = new mongoose.Schema(
           },
         },
       ],
+      default: [],
     },
     teacherType: {
       type: String,
