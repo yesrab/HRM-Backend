@@ -3,25 +3,6 @@ const { isEmail, isMobilePhone } = require("validator");
 
 const teacherSchema = new mongoose.Schema(
   {
-    name: {
-      type: {
-        f_name: {
-          type: String,
-          required: [true, "Please enter Teacher First Name"],
-          trim: true,
-        },
-        m_name: {
-          type: String,
-          trim: true,
-        },
-        l_name: {
-          type: String,
-          required: [true, "Please enter Teacher Last Name"],
-          trim: true,
-        },
-      },
-      required: [true, "Please enter Teacher First and Last Name"],
-    },
     fullName: {
       type: String,
       required: [true, "Please enter Teacher Full Name"],
@@ -32,7 +13,7 @@ const teacherSchema = new mongoose.Schema(
       required: [true, "Please select a gender"],
       enum: {
         values: ["Male", "Female", "Other"],
-        message: "{value} is not an valid Gender option",
+        message: "{value} is not an valid gender option",
       },
     },
     DOB: {
@@ -88,6 +69,8 @@ const teacherSchema = new mongoose.Schema(
         },
       },
       required: [true, "Please enter KYC details"],
+      validate: [validateKYCDetails, "KYC details must be unique"],
+      unique: true,
     },
     assignedClasses: {
       type: [
@@ -113,10 +96,22 @@ const teacherSchema = new mongoose.Schema(
       default: "Regular",
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
-teacherSchema.pre("save", function (next) {
-  const teacherNameObj = this.name;
-  this.fullName = `${teacherNameObj.f_name} ${teacherNameObj.m_name} ${teacherNameObj.l_name}`;
-  next();
-});
+
+const Teachers = mongoose.model("teachers", teacherSchema);
+
+async function validateKYCDetails(value) {
+  const { PAN, bankBranch, bankIFSC, bankAccountNumber, bankName } = value;
+  const existingTeacher = await Teachers.findOne({
+    "KYC_Details.PAN": PAN,
+    "KYC_Details.bankBranch": bankBranch,
+    "KYC_Details.bankIFSC": bankIFSC,
+    "KYC_Details.bankAccountNumber": bankAccountNumber,
+    "KYC_Details.bankName": bankName,
+  });
+  return !existingTeacher;
+}
+
+module.exports = Teachers;
+

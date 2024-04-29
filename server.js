@@ -1,7 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 require("express-async-errors");
-
+const cors = require("cors");
 const statusMonitor = require("express-status-monitor-plus");
 const connect = require("./db/connect");
 
@@ -10,17 +10,20 @@ const PORT = process.env.PORT || 3000;
 const DB_URI = process.env.DB || "";
 //env variables
 
+const app = express();
+
+app.use(cors());
+
 //express body json parsing middleware
 app.use(express.json());
 
 //express url parsing middleware
 app.use(express.urlencoded({ extended: false }));
 
-const app = express();
 app.use(
   statusMonitor({
     path: "/api/status",
-  }),
+  })
 );
 app.get("/", function (req, res) {
   res.send("Hello World");
@@ -30,6 +33,21 @@ app.get("/", function (req, res) {
 const teachersRoutes = require("./routes/teachers");
 app.use("/api/v1/teachers", teachersRoutes);
 //teachers Route
+
+//student Route
+const studentRoutes = require("./routes/students");
+app.use("/api/v1/students", studentRoutes);
+//student Route
+
+//classes Route
+const classRoutes = require("./routes/class");
+app.use("/api/v1/class", classRoutes);
+//classes Route
+
+//analytics Route
+const analyticsRoutes = require("./routes/analytics");
+app.use("/api/v1/analytics", analyticsRoutes);
+//analytics Route
 
 //error handler middleware
 const globalErrorHandler = require("./middleware/globalErrorHandler");
@@ -52,3 +70,4 @@ const startServer = async () => {
 };
 
 startServer();
+

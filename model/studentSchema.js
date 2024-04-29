@@ -2,33 +2,16 @@ const mongoose = require("mongoose");
 const { isEmail, isMobilePhone } = require("validator");
 const studentSchema = new mongoose.Schema(
   {
-    name: {
-      type: {
-        f_name: {
-          type: String,
-          required: [true, "Please enter student First Name"],
-          trim: true,
-        },
-        m_name: {
-          type: String,
-          trim: true,
-        },
-        l_name: {
-          type: String,
-          required: [true, "Please enter student Last Name"],
-          trim: true,
-        },
-      },
-    },
     fullName: {
       type: String,
+      trim: true,
       required: [true, "Please enter student full Name"],
     },
     gender: {
       type: String,
       required: [true, "Please select a gender"],
       enum: {
-        values: ["Male", "Female", "OTHERS"],
+        values: ["Male", "Female", "Other"],
         message: "{value} is not an valid Gender option",
       },
     },
@@ -56,29 +39,27 @@ const studentSchema = new mongoose.Schema(
     guardians: {
       type: [
         {
-          name: {
+          guardianName: {
             type: String,
             required: [true, "Please enter guardian Name"],
             trim: true,
           },
-          mobileNumber: {
+          guardianMobileNumber: {
             type: String,
             required: [true, "Please enter mobile number"],
-            unique: true,
             validate: [isMobilePhone, "Please add a valid number"],
           },
-          emailId: {
+          guardianEmailId: {
             type: String,
             required: [true, "Please add guardian email"],
-            unique: true,
-            lowercase: true,
             validate: [isEmail, "Please add a valid email"],
+            lowercase: true,
           },
           isParent: {
             type: Boolean,
             default: false,
           },
-          homeAddress: {
+          guardianHomeAddress: {
             type: String,
             required: [true, "Please enter guardian home address"],
           },
@@ -115,13 +96,21 @@ const studentSchema = new mongoose.Schema(
       },
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
-studentSchema.pre("save", function (next) {
-  const studentNameObj = this.name;
-  this.fullName = `${studentNameObj.f_name} ${studentNameObj.m_name} ${studentNameObj.l_name}`;
+
+studentSchema.pre("validate", function (next) {
+  this.guardians.forEach((guardian) => {
+    console.log(guardian);
+    if (guardian.isParent === "on") {
+      guardian.isParent = true;
+    } else if (guardian.isParent === "no") {
+      guardian.isParent = false;
+    }
+  });
   next();
 });
+
 studentSchema.pre("save", function (next) {
   const guardians = this.guardians;
   const numParents = guardians.filter((guardian) => guardian.isParent).length;
@@ -130,6 +119,6 @@ studentSchema.pre("save", function (next) {
   }
   next();
 });
-
 const student = mongoose.model("student", studentSchema);
 module.exports = student;
+

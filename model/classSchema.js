@@ -1,16 +1,24 @@
 const mongoose = require("mongoose");
-const ClassSchema = new mongoose.Schema(
+const classSchema = new mongoose.Schema(
   {
     className: {
       type: String,
-      required: [true, "Please enter a valid className"],
       trim: true,
+      unique: true,
+      validate: [validateClassName, "Class with the same name already exists"],
     },
+    // subject: {
+    //   type: String,
+    //   trim: true,
+    //   required: [true, "please enter name of the subject"],
+    // },
     classDetails: {
       type: {
         standard: {
           type: Number,
           required: [true, "Please enter a class number"],
+          min: 1,
+          max: 12,
         },
         section: {
           type: String,
@@ -20,7 +28,6 @@ const ClassSchema = new mongoose.Schema(
         },
       },
       required: [true, "please enter a class number and section"],
-      unique: true,
     },
     studentMemberFee: {
       type: Number,
@@ -30,7 +37,16 @@ const ClassSchema = new mongoose.Schema(
       ],
     },
     classTeacher: {
-      type: String,
+      type: {
+        name: {
+          type: String,
+          trim: true,
+        },
+        teacherId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "teacher",
+        },
+      },
     },
     classCapacity: {
       type: Number,
@@ -73,16 +89,23 @@ const ClassSchema = new mongoose.Schema(
       ],
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-ClassSchema.pre("save", function (next) {
+classSchema.pre("save", function (next) {
+  if (this.endDate <= this.startDate) {
+    return next(new Error("End date must be greater than start date"));
+  }
+  next();
+});
+
+classSchema.pre("save", function (next) {
   const classDetails = this.classDetails;
   this.className = `${classDetails.standard} ${classDetails.section}`;
   next();
 });
 
-ClassSchema.pre("save", function (next) {
+classSchema.pre("save", function (next) {
   const numStudents = this.students.length;
   if (numStudents > this.classCapacity) {
     return next(new Error("The number of students exceeds the class capacity"));
@@ -90,5 +113,12 @@ ClassSchema.pre("save", function (next) {
   next();
 });
 
-const classes = mongoose.model("classes", ClassSchema);
-module.exports = classes;
+const Classes = mongoose.model("Classes", classSchema);
+
+async function validateClassName(value) {
+  const classExists = await Classes.findOne({ className: value });
+  if (classExists) throw new Error("Class with the same name already exists");
+}
+
+module.exports = Classes;
+
