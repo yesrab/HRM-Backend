@@ -47,6 +47,10 @@ const classSchema = new mongoose.Schema(
           ref: "teacher",
         },
       },
+      default: {
+        name: "none",
+        teacherId: null,
+      },
     },
     classCapacity: {
       type: Number,

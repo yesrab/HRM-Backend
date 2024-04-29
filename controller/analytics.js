@@ -58,13 +58,33 @@ const studentEnrollmentStatusPipeline = [
 ];
 
 const chipsData = async (req, res) => {
-  const studentCount = await studentModel.countDocuments();
-  const teacherCount = await teacherModel.countDocuments();
-  const classCount = await classModel.countDocuments();
-  const totalFee = await classModel.aggregate(totalFeesPipeLine);
-  const totalSalary = await teacherModel.aggregate(expens);
-  const [{ totalFees }] = totalFee;
-  const [{ expenses }] = totalSalary;
+  const studentCountPromise = studentModel.countDocuments();
+  const teacherCountPromise = teacherModel.countDocuments();
+  const classCountPromise = classModel.countDocuments();
+  const totalFeePromise = classModel.aggregate(totalFeesPipeLine);
+  const totalSalaryPromise = teacherModel.aggregate(expens);
+
+  const [
+    studentCount,
+    teacherCount,
+    classCount,
+    totalFeeResult,
+    totalSalaryResult,
+  ] = await Promise.all([
+    studentCountPromise,
+    teacherCountPromise,
+    classCountPromise,
+    totalFeePromise,
+    totalSalaryPromise,
+  ]);
+
+  const totalFees =
+    totalFeeResult && totalFeeResult[0] ? totalFeeResult[0].totalFees : 0;
+  const expenses =
+    totalSalaryResult && totalSalaryResult[0]
+      ? totalSalaryResult[0].expenses
+      : 0;
+
   res
     .status(200)
     .json({ studentCount, teacherCount, classCount, totalFees, expenses });
